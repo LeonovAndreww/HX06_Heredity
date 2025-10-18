@@ -153,33 +153,91 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         father = people[person]["father"]
         trait = people[person]["trait"]
 
-        # print("Person: ", person)
-        # print("Name: ", name)
-        # print("Mother: ", mother)
-        # print("Father: ", father)
-        # print("Trait: ", trait)
-
         if mother is None:
             if person in one_gene:
                 one_gene_prob = PROBS["gene"][1]
-                if person in have_trait:
-                    has_trait_prob = PROBS["trait"][1][trait]
-                else:
-                    has_trait_prob = 1 - PROBS["trait"][1][trait]
 
             if person in two_genes:
                 two_genes_prob = PROBS["gene"][2]
-                if person in have_trait:
-                    has_trait_prob = PROBS["trait"][2][trait]
-                else:
-                    has_trait_prob = 1 - PROBS["trait"][2][trait]
 
             if person not in one_gene and person not in two_genes:
                 zero_genes_prob = PROBS["gene"][0]
-                if person in have_trait:
-                    has_trait_prob = PROBS["trait"][0][trait]
+
+        else:
+            one_gene_prob_mother = 1.0
+            one_gene_prob_father = 1.0
+
+            if person in one_gene:
+                if mother in one_gene:
+                    one_gene_prob_mother *= 0.5
+                elif mother in two_genes:
+                    one_gene_prob_mother *= 1 - PROBS["mutation"]
                 else:
-                    has_trait_prob = 1 - PROBS["trait"][0][trait]
+                    one_gene_prob_mother *= 0.1
+
+                if father in one_gene:
+                    one_gene_prob_father *= 0.5
+                elif father in two_genes:
+                    one_gene_prob_father *= 1 - PROBS["mutation"]
+                else:
+                    one_gene_prob_father *= 0.1
+
+                one_gene_prob = one_gene_prob_mother + one_gene_prob_father
+
+            if person in two_genes:
+                if mother in one_gene:
+                    one_gene_prob_mother *= 0.5
+                elif mother in two_genes:
+                    one_gene_prob_mother *= 1 - PROBS["mutation"]
+                else:
+                    one_gene_prob_mother *= PROBS["mutation"]
+
+                if father in one_gene:
+                    one_gene_prob_father *= 0.5
+                elif father in two_genes:
+                    one_gene_prob_father *= 1 - PROBS["mutation"]
+                else:
+                    one_gene_prob_father *= PROBS["mutation"]
+
+                one_gene_prob = one_gene_prob_mother * one_gene_prob_father
+
+            if person not in one_gene and person not in two_genes:
+                if mother in one_gene:
+                    one_gene_prob_mother *= 0.5
+                elif mother in two_genes:
+                    one_gene_prob_mother *= 1 - PROBS["mutation"]
+                else:
+                    one_gene_prob_mother *= PROBS["mutation"]
+
+                if father in one_gene:
+                    one_gene_prob_father *= 0.5
+                elif father in two_genes:
+                    one_gene_prob_father *= 1 - PROBS["mutation"]
+                else:
+                    one_gene_prob_father *= PROBS["mutation"]
+
+                one_gene_prob = one_gene_prob_mother * one_gene_prob_father
+
+        if person in one_gene:
+            if person in have_trait:
+                has_trait_prob = PROBS["trait"][1][trait]
+            else:
+                has_trait_prob = 1 - PROBS["trait"][1][trait]
+
+        if person in two_genes:
+            if person in have_trait:
+                has_trait_prob = PROBS["trait"][2][trait]
+            else:
+                has_trait_prob = 1 - PROBS["trait"][2][trait]
+
+        if person not in one_gene and person not in two_genes:
+            if person in have_trait:
+                has_trait_prob = PROBS["trait"][0][trait]
+            else:
+                has_trait_prob = 1 - PROBS["trait"][0][trait]
+
+
+
 
         dictionary[person] = zero_genes_prob * one_gene_prob * two_genes_prob * has_trait_prob
         print(dictionary[person])
