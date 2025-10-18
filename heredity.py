@@ -148,7 +148,6 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         two_genes_prob = 1.0
         has_trait_prob = 1.0
 
-        name = people[person]["name"]
         mother = people[person]["mother"]
         father = people[person]["father"]
         trait = people[person]["trait"]
@@ -164,83 +163,79 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 zero_genes_prob = PROBS["gene"][0]
 
         else:
-            one_gene_prob_mother = 1.0
-            one_gene_prob_father = 1.0
+            prob_mother = 1.0
+            prob_father = 1.0
 
             if person in one_gene:
                 if mother in one_gene:
-                    one_gene_prob_mother *= 0.5
+                    prob_mother *= 0.5
                 elif mother in two_genes:
-                    one_gene_prob_mother *= 1 - PROBS["mutation"]
+                    prob_mother *= 1 - PROBS["mutation"]
                 else:
-                    one_gene_prob_mother *= 0.1
+                    prob_mother *= 0.1
 
                 if father in one_gene:
-                    one_gene_prob_father *= 0.5
+                    prob_father *= 0.5
                 elif father in two_genes:
-                    one_gene_prob_father *= 1 - PROBS["mutation"]
+                    prob_father *= 1 - PROBS["mutation"]
                 else:
-                    one_gene_prob_father *= 0.1
+                    prob_father *= 0.1
 
-                one_gene_prob = one_gene_prob_mother + one_gene_prob_father
+                one_gene_prob = prob_mother * (1.0 - prob_father) + prob_father * (1.0 - prob_mother)
 
             if person in two_genes:
                 if mother in one_gene:
-                    one_gene_prob_mother *= 0.5
+                    prob_mother *= 0.5
                 elif mother in two_genes:
-                    one_gene_prob_mother *= 1 - PROBS["mutation"]
+                    prob_mother *= 1 - PROBS["mutation"]
                 else:
-                    one_gene_prob_mother *= PROBS["mutation"]
+                    prob_mother *= PROBS["mutation"]
 
                 if father in one_gene:
-                    one_gene_prob_father *= 0.5
+                    prob_father *= 0.5
                 elif father in two_genes:
-                    one_gene_prob_father *= 1 - PROBS["mutation"]
+                    prob_father *= 1 - PROBS["mutation"]
                 else:
-                    one_gene_prob_father *= PROBS["mutation"]
+                    prob_father *= PROBS["mutation"]
 
-                one_gene_prob = one_gene_prob_mother * one_gene_prob_father
+                two_genes_prob = prob_mother * prob_father
 
             if person not in one_gene and person not in two_genes:
                 if mother in one_gene:
-                    one_gene_prob_mother *= 0.5
+                    prob_mother *= 0.5
                 elif mother in two_genes:
-                    one_gene_prob_mother *= 1 - PROBS["mutation"]
+                    prob_mother *= PROBS["mutation"]
                 else:
-                    one_gene_prob_mother *= PROBS["mutation"]
+                    prob_mother *= 1 - PROBS["mutation"]
 
                 if father in one_gene:
-                    one_gene_prob_father *= 0.5
+                    prob_father *= 0.5
                 elif father in two_genes:
-                    one_gene_prob_father *= 1 - PROBS["mutation"]
+                    prob_father *= PROBS["mutation"]
                 else:
-                    one_gene_prob_father *= PROBS["mutation"]
+                    prob_father *= 1 - PROBS["mutation"]
 
-                one_gene_prob = one_gene_prob_mother * one_gene_prob_father
+                zero_genes_prob = prob_mother * prob_father
+        if trait is not None:
+            if person in one_gene:
+                if person in have_trait:
+                    has_trait_prob = PROBS["trait"][1][trait]
+                else:
+                    has_trait_prob = 1 - PROBS["trait"][1][trait]
 
-        if person in one_gene:
-            if person in have_trait:
-                has_trait_prob = PROBS["trait"][1][trait]
-            else:
-                has_trait_prob = 1 - PROBS["trait"][1][trait]
+            if person in two_genes:
+                if person in have_trait:
+                    has_trait_prob = PROBS["trait"][2][trait]
+                else:
+                    has_trait_prob = 1 - PROBS["trait"][2][trait]
 
-        if person in two_genes:
-            if person in have_trait:
-                has_trait_prob = PROBS["trait"][2][trait]
-            else:
-                has_trait_prob = 1 - PROBS["trait"][2][trait]
-
-        if person not in one_gene and person not in two_genes:
-            if person in have_trait:
-                has_trait_prob = PROBS["trait"][0][trait]
-            else:
-                has_trait_prob = 1 - PROBS["trait"][0][trait]
-
-
-
+            if person not in one_gene and person not in two_genes:
+                if person in have_trait:
+                    has_trait_prob = PROBS["trait"][0][trait]
+                else:
+                    has_trait_prob = 1 - PROBS["trait"][0][trait]
 
         dictionary[person] = zero_genes_prob * one_gene_prob * two_genes_prob * has_trait_prob
-        print(dictionary[person])
 
     for person in dictionary:
         joint_prob *= dictionary[person]
